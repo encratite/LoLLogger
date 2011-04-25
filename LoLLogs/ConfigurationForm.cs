@@ -26,6 +26,10 @@ namespace LoLLogs
 
 		private void saveConfigurationButton_Click(object sender, EventArgs e)
 		{
+			string directory = lolFolderTextBox.Text;
+			string address = loggingServerAddressTextBox.Text;
+			int port = Convert.ToInt32(loggingServerPortTextBox.Text);
+			ParentLogger.SaveConfiguration(directory, address, port);
 			Close();
 		}
 
@@ -43,6 +47,14 @@ namespace LoLLogs
 			else
 				isGoodNumber = false;
 			e.Handled = !isGoodNumber;
+		}
+
+		private void chooseLoLFolderButton_Click(object sender, EventArgs e)
+		{
+			// lolDirectoryBrowser.RootFolder 
+			lolDirectoryBrowser.SelectedPath = lolFolderTextBox.Text;
+			lolDirectoryBrowser.ShowDialog();
+			lolFolderTextBox.Text = lolDirectoryBrowser.SelectedPath;
 		}
 	}
 }

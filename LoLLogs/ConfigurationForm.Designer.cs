@@ -37,6 +37,7 @@
 			this.chooseLoLFolderButton = new System.Windows.Forms.Button();
 			this.saveConfigurationButton = new System.Windows.Forms.Button();
 			this.cancelButton = new System.Windows.Forms.Button();
+			this.lolDirectoryBrowser = new System.Windows.Forms.FolderBrowserDialog();
 			this.SuspendLayout();
 			// 
 			// LoLFolderLabel
@@ -96,6 +97,7 @@
 			this.chooseLoLFolderButton.TabIndex = 6;
 			this.chooseLoLFolderButton.Text = "Browse";
 			this.chooseLoLFolderButton.UseVisualStyleBackColor = true;
+			this.chooseLoLFolderButton.Click += new System.EventHandler(this.chooseLoLFolderButton_Click);
 			// 
 			// saveConfigurationButton
 			// 
@@ -116,6 +118,12 @@
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
 			this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+			// 
+			// lolDirectoryBrowser
+			// 
+			this.lolDirectoryBrowser.Description = "Select the League of Legends directory";
+			this.lolDirectoryBrowser.RootFolder = System.Environment.SpecialFolder.MyComputer;
+			this.lolDirectoryBrowser.ShowNewFolderButton = false;
 			// 
 			// ConfigurationForm
 			// 
@@ -151,5 +159,6 @@
 		private System.Windows.Forms.Button chooseLoLFolderButton;
 		private System.Windows.Forms.Button saveConfigurationButton;
 		private System.Windows.Forms.Button cancelButton;
+		private System.Windows.Forms.FolderBrowserDialog lolDirectoryBrowser;
 	}
 }
