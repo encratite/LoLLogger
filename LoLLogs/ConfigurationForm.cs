@@ -56,5 +56,17 @@ namespace LoLLogs
 			lolDirectoryBrowser.ShowDialog();
 			lolFolderTextBox.Text = lolDirectoryBrowser.SelectedPath;
 		}
+
+		private void ConfigurationForm_Load(object sender, EventArgs e)
+		{
+			ParentLogger.InitialiseConfigurationForm();
+		}
+
+		public void SetFields(string directory, string address, int port)
+		{
+			lolFolderTextBox.Text = directory;
+			loggingServerAddressTextBox.Text = address;
+			loggingServerPortTextBox.Text = port.ToString();
+		}
 	}
 }

@@ -54,7 +54,8 @@
 			this.lolFolderTextBox.Location = new System.Drawing.Point(187, 6);
 			this.lolFolderTextBox.Name = "lolFolderTextBox";
 			this.lolFolderTextBox.Size = new System.Drawing.Size(355, 20);
-			this.lolFolderTextBox.TabIndex = 1;
+			this.lolFolderTextBox.TabIndex = 4;
+			this.lolFolderTextBox.TabStop = false;
 			// 
 			// loggingServerAddressLabel
 			// 
@@ -70,7 +71,7 @@
 			this.loggingServerAddressTextBox.Location = new System.Drawing.Point(187, 34);
 			this.loggingServerAddressTextBox.Name = "loggingServerAddressTextBox";
 			this.loggingServerAddressTextBox.Size = new System.Drawing.Size(200, 20);
-			this.loggingServerAddressTextBox.TabIndex = 3;
+			this.loggingServerAddressTextBox.TabIndex = 1;
 			// 
 			// loggingServerPortLabel
 			// 
@@ -86,7 +87,7 @@
 			this.loggingServerPortTextBox.Location = new System.Drawing.Point(449, 34);
 			this.loggingServerPortTextBox.Name = "loggingServerPortTextBox";
 			this.loggingServerPortTextBox.Size = new System.Drawing.Size(93, 20);
-			this.loggingServerPortTextBox.TabIndex = 5;
+			this.loggingServerPortTextBox.TabIndex = 2;
 			this.loggingServerPortTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.loggingServerPortTextBox_KeyPress);
 			// 
 			// chooseLoLFolderButton
@@ -94,7 +95,7 @@
 			this.chooseLoLFolderButton.Location = new System.Drawing.Point(561, 6);
 			this.chooseLoLFolderButton.Name = "chooseLoLFolderButton";
 			this.chooseLoLFolderButton.Size = new System.Drawing.Size(83, 20);
-			this.chooseLoLFolderButton.TabIndex = 6;
+			this.chooseLoLFolderButton.TabIndex = 3;
 			this.chooseLoLFolderButton.Text = "Browse";
 			this.chooseLoLFolderButton.UseVisualStyleBackColor = true;
 			this.chooseLoLFolderButton.Click += new System.EventHandler(this.chooseLoLFolderButton_Click);
@@ -104,7 +105,7 @@
 			this.saveConfigurationButton.Location = new System.Drawing.Point(461, 76);
 			this.saveConfigurationButton.Name = "saveConfigurationButton";
 			this.saveConfigurationButton.Size = new System.Drawing.Size(81, 22);
-			this.saveConfigurationButton.TabIndex = 7;
+			this.saveConfigurationButton.TabIndex = 4;
 			this.saveConfigurationButton.Text = "Ok";
 			this.saveConfigurationButton.UseVisualStyleBackColor = true;
 			this.saveConfigurationButton.Click += new System.EventHandler(this.saveConfigurationButton_Click);
@@ -114,7 +115,7 @@
 			this.cancelButton.Location = new System.Drawing.Point(561, 76);
 			this.cancelButton.Name = "cancelButton";
 			this.cancelButton.Size = new System.Drawing.Size(81, 22);
-			this.cancelButton.TabIndex = 8;
+			this.cancelButton.TabIndex = 5;
 			this.cancelButton.Text = "Cancel";
 			this.cancelButton.UseVisualStyleBackColor = true;
 			this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
@@ -143,6 +144,7 @@
 			this.MaximizeBox = false;
 			this.Name = "ConfigurationForm";
 			this.Text = "Configure logger";
+			this.Load += new System.EventHandler(this.ConfigurationForm_Load);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

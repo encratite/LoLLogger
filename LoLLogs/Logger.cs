@@ -55,7 +55,7 @@ namespace LoLLogs
 
 		void PrintLine(string text)
 		{
-			Print(text + "\n");
+			Print(Nil.Time.Timestamp() + " " + text + "\n");
 		}
 
 		public void OnLoad()
@@ -98,7 +98,14 @@ namespace LoLLogs
 			LoggerConfiguration.LoLDirectory = directory;
 			LoggerConfiguration.LogServer = server;
 			LoggerConfiguration.LogServerPort = port;
+			PrintLine("Configuration has been saved");
 			SerialiseConfiguration();
+		}
+
+		public void InitialiseConfigurationForm()
+		{
+			if (LoggerConfiguration != null)
+				LoggerConfigurationForm.SetFields(LoggerConfiguration.LoLDirectory, LoggerConfiguration.LogServer, LoggerConfiguration.LogServerPort);
 		}
 
 		void SerialiseConfiguration()
