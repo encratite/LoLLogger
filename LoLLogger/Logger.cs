@@ -25,7 +25,6 @@ namespace LoLLogs
 
 		Thread loggingThread;
 		bool running;
-		Object loggerLock;
 		AutoResetEvent terminateThreadEvent;
 
 		const int WM_VSCROLL = 0x115;
@@ -43,7 +42,6 @@ namespace LoLLogs
 			configurationSerialiser = new Nil.Serialiser<Configuration>(configurationPath);
 			historySerialiser = new Nil.Serialiser<LogHistory>(historyPath);
 			running = false;
-			loggerLock = new Object();
 			terminateThreadEvent = new AutoResetEvent(false);
 		}
 
@@ -96,9 +94,9 @@ namespace LoLLogs
 
 		public void OnClosing()
 		{
+			StopLogging();
 			SerialiseConfiguration();
 			SerialiseHistory();
-			StopLogging();
 		}
 
 		public void ShowConfigurationDialogue()
@@ -249,13 +247,10 @@ namespace LoLLogs
 		{
 			while (true)
 			{
-				lock(loggerLock)
-				{
-					if (!running)
-						break;
-					ProcessLogs();
-					SerialiseHistory();
-				}
+				if (!running)
+					break;
+				ProcessLogs();
+				SerialiseHistory();
 				terminateThreadEvent.WaitOne(pollingDelay);
 			}
 		}
