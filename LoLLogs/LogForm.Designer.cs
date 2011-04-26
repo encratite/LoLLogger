@@ -41,7 +41,7 @@
 			this.logTextBox.Location = new System.Drawing.Point(0, 31);
 			this.logTextBox.Name = "logTextBox";
 			this.logTextBox.ReadOnly = true;
-			this.logTextBox.Size = new System.Drawing.Size(521, 242);
+			this.logTextBox.Size = new System.Drawing.Size(815, 242);
 			this.logTextBox.TabIndex = 0;
 			this.logTextBox.Text = "";
 			// 
@@ -55,14 +55,14 @@
 			this.configurationButton.UseVisualStyleBackColor = true;
 			this.configurationButton.Click += new System.EventHandler(this.configurationButton_Click);
 			// 
-			// logForm
+			// LogForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(521, 273);
+			this.ClientSize = new System.Drawing.Size(815, 273);
 			this.Controls.Add(this.configurationButton);
 			this.Controls.Add(this.logTextBox);
-			this.Name = "logForm";
+			this.Name = "LogForm";
 			this.Text = "League of Legends Log Uploader";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LogForm_FormClosing);
 			this.Load += new System.EventHandler(this.LogForm_Load);

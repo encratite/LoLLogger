@@ -79,6 +79,7 @@ namespace LoLLogs
 			{
 				// there is no history file yet - start with a blank history
 				PrintLine("No history file was found - starting with a blank one");
+				history = new LogHistory();
 			}
 			try
 			{
@@ -97,6 +98,7 @@ namespace LoLLogs
 		{
 			SerialiseConfiguration();
 			SerialiseHistory();
+			StopLogging();
 		}
 
 		public void ShowConfigurationDialogue()
@@ -132,17 +134,13 @@ namespace LoLLogs
 
 		void StopLogging()
 		{
-			bool terminateThread = false;
-			lock (loggerLock)
+			if (running)
 			{
-				if (running)
-				{
-					running = false;
-					terminateThread = true;
-				}
-			}
-			if (terminateThread)
+				running = false;
+				terminateThreadEvent.Set();
 				loggingThread.Join();
+				terminateThreadEvent.Reset();
+			}
 		}
 
 		void StartLogging()
@@ -178,30 +176,29 @@ namespace LoLLogs
 
 			foreach (string path in logs)
 			{
+				if (!running)
+					break;
 				try
 				{
 					FileInfo information = new FileInfo(path);
 					long size = information.Length;
 					LogStatus status;
 					bool doProcessLog = false;
-					lock (loggerLock)
+					if (history.logMap.ContainsKey(path))
 					{
-						if (history.logMap.ContainsKey(path))
+						status = history.logMap[path];
+						if (status.LogHasChanged(size))
 						{
-							status = history.logMap[path];
-							if (status.LogHasChanged(size))
-							{
-								// there is new data to be parsed
-								doProcessLog = true;
-							}
-						}
-						else
-						{
-							// it's a new file which is not part of the history yet
-							status = new LogStatus();
-							history.logMap.Add(path, status);
+							// there is new data to be parsed
 							doProcessLog = true;
 						}
+					}
+					else
+					{
+						// it's a new file which is not part of the history yet
+						status = new LogStatus();
+						history.logMap.Add(path, status);
+						doProcessLog = true;
 					}
 					if(doProcessLog)
 						ProcessLog(path, status, size);
@@ -222,6 +219,8 @@ namespace LoLLogs
 			reader.Read(buffer, 0, bufferSize);
 			reader.Close();
 			string contents = new string(buffer);
+			if (!running)
+				return;
 			ProcessLogContents(path, contents);
 		}
 
@@ -255,9 +254,8 @@ namespace LoLLogs
 					if (!running)
 						break;
 					ProcessLogs();
-				}
-				lock (loggerLock)
 					SerialiseHistory();
+				}
 				terminateThreadEvent.WaitOne(pollingDelay);
 			}
 		}
