@@ -7,8 +7,8 @@ namespace LoLLogs
 {
 	public class Configuration
 	{
-		public string LoLDirectory;
-		public string LogServer;
-		public int LogServerPort;
+		public string lolDirectory;
+		public string logServer;
+		public int logServerPort;
 	}
 }

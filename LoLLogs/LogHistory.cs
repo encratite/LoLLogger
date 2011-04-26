@@ -7,11 +7,11 @@ namespace LoLLogs
 {
 	public class LogHistory
 	{
-		public List<LogStatus> Logs;
+		public Nil.SerialisableDictionary<string, LogStatus> logMap;
 
 		public LogHistory()
 		{
-			Logs = new List<LogStatus>();
+			logMap = new Nil.SerialisableDictionary<string, LogStatus>();
 		}
 	}
 }

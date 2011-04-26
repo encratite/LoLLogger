@@ -7,7 +7,16 @@ namespace LoLLogs
 {
 	public class LogStatus
 	{
-		public String Name;
-		public int offset;
+		public long offset;
+
+		public LogStatus()
+		{
+			offset = 0;
+		}
+
+		public bool LogHasChanged(long currentOffset)
+		{
+			return currentOffset > offset;
+		}
 	}
 }
