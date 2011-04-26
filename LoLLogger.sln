@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoLLogs", "LoLLogs\LoLLogs.csproj", "{93EF38D5-6DA2-44DC-94FD-B318904C7A2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoLLogger", "LoLLogger\LoLLogger.csproj", "{93EF38D5-6DA2-44DC-94FD-B318904C7A2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
