@@ -243,7 +243,8 @@ namespace LoLLogs
 			char[] buffer = new char[bufferSize];
 			reader.Read(buffer, 0, bufferSize);
 			reader.Close();
-			string contents = new string(buffer);
+			byte[] byteBuffer = Encoding.ASCII.GetBytes(buffer);
+			string contents = Encoding.ASCII.GetString(byteBuffer);
 			if (!running)
 				return true;
 			bool noNetworkErrorOccurred = ProcessLogContents(path, status, contents);
@@ -254,7 +255,7 @@ namespace LoLLogs
 		bool ProcessLogContents(string path, LogStatus status, string contents)
 		{
 			string beginningMarker = "  body = (com.riotgames.platform.gameclient.domain::EndOfGameStats)#1";
-			string endMarker = "timeToLive = 0";
+			string endMarker = "\n  timeToLive = 0";
 			for (int offset = 0; offset < contents.Length; )
 			{
 				int beginningOffset = contents.IndexOf(beginningMarker, offset);
@@ -269,7 +270,7 @@ namespace LoLLogs
 				string endOfGameStats = contents.Substring(beginningOffset, endOffset - beginningOffset);
 				offset = endOffset + endMarker.Length;
 				PrintLine("Discovered stats for a game of size " + endOfGameStats.Length.ToString() + " in file \"" + path + "\"");
-				if (!TransmitContents(contents))
+				if (!TransmitContents(endOfGameStats))
 					return false;
 			}
 			lock (history)
@@ -316,7 +317,7 @@ namespace LoLLogs
 				writer.Write(packet);
 				writer.Flush();
 			}
-			catch (SocketException exception)
+			catch (Exception exception)
 			{
 				PrintLine("Unable to upload the stats to the server: " + exception.Message);
 				networkClient = null;
