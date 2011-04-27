@@ -237,14 +237,13 @@ namespace LoLLogs
 
 		bool ProcessLog(string path, LogStatus status, long fileSize)
 		{
-			StreamReader reader = new StreamReader(path);
+			StreamReader reader = new StreamReader(path, Encoding.ASCII);
 			reader.BaseStream.Seek(status.offset, SeekOrigin.Begin);
 			int bufferSize = (int)(fileSize - status.offset);
 			char[] buffer = new char[bufferSize];
 			reader.Read(buffer, 0, bufferSize);
 			reader.Close();
-			byte[] byteBuffer = Encoding.ASCII.GetBytes(buffer);
-			string contents = Encoding.ASCII.GetString(byteBuffer);
+			string contents = new string(buffer);
 			if (!running)
 				return true;
 			bool noNetworkErrorOccurred = ProcessLogContents(path, status, contents);
