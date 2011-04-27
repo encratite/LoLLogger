@@ -52,14 +52,23 @@ namespace LoLLogs
 
 		void Print(string text)
 		{
-			mainForm.logTextBox.Invoke
-			(
-				(MethodInvoker)delegate
-				{
-					mainForm.logTextBox.AppendText(text);
-					SendMessage(mainForm.logTextBox.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-				}
-			);
+			try
+			{
+				mainForm.logTextBox.BeginInvoke
+				(
+					(MethodInvoker)delegate
+					{
+						mainForm.logTextBox.AppendText(text);
+						SendMessage(mainForm.logTextBox.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+					}
+				);
+			}
+			catch (InvalidOperationException)
+			{
+				// this is thrown when the application is currently closing
+				// with Invoke it just deadlocks then instead
+				// I am not happy with this at all
+			}
 		}
 
 		void PrintLine(string text)
@@ -94,9 +103,9 @@ namespace LoLLogs
 
 		public void OnClosing()
 		{
+			Console.Out.Write("Closing the application");
 			StopLogging();
-			SerialiseConfiguration();
-			SerialiseHistory();
+			Console.Out.Write("Returning from OnClosing");
 		}
 
 		public void ShowConfigurationDialogue()
@@ -134,7 +143,8 @@ namespace LoLLogs
 		{
 			if (running)
 			{
-				running = false;
+				lock(history)
+					running = false;
 				terminateThreadEvent.Set();
 				loggingThread.Join();
 				terminateThreadEvent.Reset();
@@ -174,29 +184,32 @@ namespace LoLLogs
 
 			foreach (string path in logs)
 			{
-				if (!running)
-					break;
 				try
 				{
 					FileInfo information = new FileInfo(path);
 					long size = information.Length;
 					LogStatus status;
 					bool doProcessLog = false;
-					if (history.logMap.ContainsKey(path))
+					lock (history)
 					{
-						status = history.logMap[path];
-						if (status.LogHasChanged(size))
+						if (!running)
+							break;
+						if (history.logMap.ContainsKey(path))
 						{
-							// there is new data to be parsed
+							status = history.logMap[path];
+							if (status.LogHasChanged(size))
+							{
+								// there is new data to be parsed
+								doProcessLog = true;
+							}
+						}
+						else
+						{
+							// it's a new file which is not part of the history yet
+							status = new LogStatus();
+							history.logMap.Add(path, status);
 							doProcessLog = true;
 						}
-					}
-					else
-					{
-						// it's a new file which is not part of the history yet
-						status = new LogStatus();
-						history.logMap.Add(path, status);
-						doProcessLog = true;
 					}
 					if(doProcessLog)
 						ProcessLog(path, status, size);
@@ -204,6 +217,13 @@ namespace LoLLogs
 				catch (IOException exception)
 				{
 					PrintLine("An error occurred during the processing of \"" + path + "\": " + exception.Message);
+				}
+
+				lock (history)
+				{
+					if (!running)
+						break;
+					SerialiseHistory();
 				}
 			}
 		}
@@ -219,10 +239,10 @@ namespace LoLLogs
 			string contents = new string(buffer);
 			if (!running)
 				return;
-			ProcessLogContents(path, contents);
+			ProcessLogContents(path, status, contents);
 		}
 
-		void ProcessLogContents(string path, string contents)
+		void ProcessLogContents(string path, LogStatus status, string contents)
 		{
 			string beginningMarker = "  body = (com.riotgames.platform.gameclient.domain::EndOfGameStats)#1";
 			string endMarker = "timeToLive = 0";
@@ -240,6 +260,13 @@ namespace LoLLogs
 				string endOfGameStats = contents.Substring(beginningOffset, endOffset - beginningOffset);
 				offset = endOffset + endMarker.Length;
 				PrintLine("Discovered stats for a game of size " + endOfGameStats.Length.ToString() + " in file \"" + path + "\"");
+				// upload the data at this point
+			}
+			lock (history)
+			{
+				if (!running)
+					return;
+				status.offset = contents.Length;
 			}
 		}
 
