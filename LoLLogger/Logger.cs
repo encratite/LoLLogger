@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading;
+using System.Net.Sockets;
 
 namespace LoLLogs
 {
@@ -26,6 +27,8 @@ namespace LoLLogs
 		Thread loggingThread;
 		bool running;
 		AutoResetEvent terminateThreadEvent;
+
+		TcpClient networkClient;
 
 		const int WM_VSCROLL = 0x115;
 		const int SB_BOTTOM = 7;
@@ -103,9 +106,9 @@ namespace LoLLogs
 
 		public void OnClosing()
 		{
-			Console.Out.Write("Closing the application");
+			if(networkClient != null)
+				networkClient.Close();
 			StopLogging();
-			Console.Out.Write("Returning from OnClosing");
 		}
 
 		public void ShowConfigurationDialogue()
@@ -211,8 +214,12 @@ namespace LoLLogs
 							doProcessLog = true;
 						}
 					}
-					if(doProcessLog)
-						ProcessLog(path, status, size);
+					if (doProcessLog)
+					{
+						bool noNetworkErrorOccurred = ProcessLog(path, status, size);
+						if (!noNetworkErrorOccurred)
+							break;
+					}
 				}
 				catch (IOException exception)
 				{
@@ -228,7 +235,7 @@ namespace LoLLogs
 			}
 		}
 
-		void ProcessLog(string path, LogStatus status, long fileSize)
+		bool ProcessLog(string path, LogStatus status, long fileSize)
 		{
 			StreamReader reader = new StreamReader(path);
 			reader.BaseStream.Seek(status.offset, SeekOrigin.Begin);
@@ -238,11 +245,13 @@ namespace LoLLogs
 			reader.Close();
 			string contents = new string(buffer);
 			if (!running)
-				return;
-			ProcessLogContents(path, status, contents);
+				return true;
+			bool noNetworkErrorOccurred = ProcessLogContents(path, status, contents);
+			return noNetworkErrorOccurred;
 		}
 
-		void ProcessLogContents(string path, LogStatus status, string contents)
+		// returns false when a network error occurred
+		bool ProcessLogContents(string path, LogStatus status, string contents)
 		{
 			string beginningMarker = "  body = (com.riotgames.platform.gameclient.domain::EndOfGameStats)#1";
 			string endMarker = "timeToLive = 0";
@@ -260,14 +269,16 @@ namespace LoLLogs
 				string endOfGameStats = contents.Substring(beginningOffset, endOffset - beginningOffset);
 				offset = endOffset + endMarker.Length;
 				PrintLine("Discovered stats for a game of size " + endOfGameStats.Length.ToString() + " in file \"" + path + "\"");
-				// upload the data at this point
+				if (!TransmitContents(contents))
+					return false;
 			}
 			lock (history)
 			{
 				if (!running)
-					return;
+					return true;
 				status.offset = contents.Length;
 			}
+			return true;
 		}
 
 		void RunLogger()
@@ -280,6 +291,38 @@ namespace LoLLogs
 				SerialiseHistory();
 				terminateThreadEvent.WaitOne(pollingDelay);
 			}
+		}
+
+		bool TransmitContents(string contents)
+		{
+			string packet = contents.Length.ToString() + ":" + contents;
+			if (networkClient == null)
+			{
+				PrintLine("Connecting to " + loggerConfiguration.logServer + ":" + loggerConfiguration.logServerPort.ToString() + " to upload the game stats");
+				try
+				{
+					networkClient = new TcpClient(loggerConfiguration.logServer, loggerConfiguration.logServerPort);
+				}
+				catch (SocketException exception)
+				{
+					PrintLine("Unable to connect to the server: " + exception.Message);
+					return false;
+				}
+			}
+			try
+			{
+				NetworkStream stream = networkClient.GetStream();
+				StreamWriter writer = new StreamWriter(stream);
+				writer.Write(packet);
+				writer.Flush();
+			}
+			catch (SocketException exception)
+			{
+				PrintLine("Unable to upload the stats to the server: " + exception.Message);
+				networkClient = null;
+				return false;
+			}
+			return true;
 		}
 	}
 }
