@@ -237,7 +237,7 @@ namespace LoLLogs
 
 		bool ProcessLog(string path, LogStatus status, long fileSize)
 		{
-			StreamReader reader = new StreamReader(path, Encoding.ASCII);
+			StreamReader reader = new StreamReader(path, Encoding.Default);
 			reader.BaseStream.Seek(status.offset, SeekOrigin.Begin);
 			int bufferSize = (int)(fileSize - status.offset);
 			char[] buffer = new char[bufferSize];
