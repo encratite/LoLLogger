@@ -139,7 +139,7 @@ namespace LoLLogs
 
 		void SerialiseHistory()
 		{
-			historySerialiser.Store(history);
+			//historySerialiser.Store(history);
 		}
 
 		void StopLogging()
@@ -312,7 +312,7 @@ namespace LoLLogs
 			try
 			{
 				NetworkStream stream = networkClient.GetStream();
-				StreamWriter writer = new StreamWriter(stream);
+				StreamWriter writer = new StreamWriter(stream, Encoding.Default);
 				writer.Write(packet);
 				writer.Flush();
 			}
