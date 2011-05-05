@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LogForm));
 			this.logTextBox = new System.Windows.Forms.RichTextBox();
 			this.configurationButton = new System.Windows.Forms.Button();
 			this.SuspendLayout();
@@ -62,6 +63,7 @@
 			this.ClientSize = new System.Drawing.Size(815, 273);
 			this.Controls.Add(this.configurationButton);
 			this.Controls.Add(this.logTextBox);
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "LogForm";
 			this.Text = "League of Legends Log Uploader";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LogForm_FormClosing);

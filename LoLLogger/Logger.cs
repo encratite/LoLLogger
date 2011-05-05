@@ -139,7 +139,7 @@ namespace LoLLogs
 
 		void SerialiseHistory()
 		{
-			//historySerialiser.Store(history);
+			historySerialiser.Store(history);
 		}
 
 		void StopLogging()
@@ -166,88 +166,92 @@ namespace LoLLogs
 			loggingThread.Start();
 		}
 
-		string GetLogDirectory()
+		// returns false when log processing is being interrupted
+		bool ProcessLogs(string directory)
 		{
-			return Path.Combine(loggerConfiguration.lolDirectory, "air", "logs");
-		}
-
-		void ProcessLogs()
-		{
-			string[] logs;
-			string directory = GetLogDirectory();
+			string[] directories, logFiles;
 			try
 			{
-				logs = Directory.GetFiles(directory);
+				directories = Directory.GetDirectories(directory);
+				logFiles = Directory.GetFiles(directory, "LolClient.*.log");
 			}
 			catch (IOException)
 			{
 				PrintLine("Unable to read directory \"" + directory + "\". Please check your League of Legends directory setting in the configuration dialogue.");
-				return;
+				return false;
 			}
 
-			foreach (string path in logs)
+			foreach (string subDirectory in directories)
 			{
-				try
-				{
-					FileInfo information = new FileInfo(path);
-					long size = information.Length;
-					LogStatus status;
-					bool doProcessLog = false;
-					lock (history)
-					{
-						if (!running)
-							break;
-						if (history.logMap.ContainsKey(path))
-						{
-							status = history.logMap[path];
-							if (status.LogHasChanged(size))
-							{
-								// there is new data to be parsed
-								doProcessLog = true;
-							}
-						}
-						else
-						{
-							// it's a new file which is not part of the history yet
-							status = new LogStatus();
-							history.logMap.Add(path, status);
-							doProcessLog = true;
-						}
-					}
-					if (doProcessLog)
-					{
-						bool noNetworkErrorOccurred = ProcessLog(path, status, size);
-						if (!noNetworkErrorOccurred)
-							break;
-					}
-				}
-				catch (IOException exception)
-				{
-					PrintLine("An error occurred during the processing of \"" + path + "\": " + exception.Message);
-				}
+				bool interrupted = !ProcessLogs(subDirectory);
+				if (interrupted)
+					return false;
+			}
 
+			foreach (string path in logFiles)
+			{
+				bool interrupted = !ProcessLogPath(path);
 				lock (history)
 				{
-					if (!running)
-						break;
+					if (interrupted || !running)
+						return false;
 					SerialiseHistory();
 				}
 			}
+			return true;
 		}
 
-		bool ProcessLog(string path, LogStatus status, long fileSize)
+
+		// returns false if log processing should not continue
+		bool ProcessLogPath(string path)
 		{
-			StreamReader reader = new StreamReader(path, Encoding.Default);
-			reader.BaseStream.Seek(status.offset, SeekOrigin.Begin);
-			int bufferSize = (int)(fileSize - status.offset);
-			char[] buffer = new char[bufferSize];
-			reader.Read(buffer, 0, bufferSize);
-			reader.Close();
-			string contents = new string(buffer);
-			if (!running)
-				return true;
-			bool noNetworkErrorOccurred = ProcessLogContents(path, status, contents);
-			return noNetworkErrorOccurred;
+			try
+			{
+				FileInfo information = new FileInfo(path);
+				long size = information.Length;
+				LogStatus status;
+				bool doProcessLog = false;
+				lock (history)
+				{
+					if (!running)
+						return false;
+					if (history.logMap.ContainsKey(path))
+					{
+						status = history.logMap[path];
+						if (status.LogHasChanged(size))
+						{
+							// there is new data to be parsed
+							doProcessLog = true;
+						}
+					}
+					else
+					{
+						// it's a new file which is not part of the history yet
+						status = new LogStatus();
+						history.logMap.Add(path, status);
+						doProcessLog = true;
+					}
+				}
+				if (doProcessLog)
+				{
+					StreamReader reader = new StreamReader(path, Encoding.Default);
+					reader.BaseStream.Seek(status.offset, SeekOrigin.Begin);
+					int bufferSize = (int)(size - status.offset);
+					char[] buffer = new char[bufferSize];
+					reader.Read(buffer, 0, bufferSize);
+					reader.Close();
+					string contents = new string(buffer);
+					if (!running)
+						return true;
+					bool noNetworkErrorOccurred = ProcessLogContents(path, status, contents);
+					return noNetworkErrorOccurred;
+				}
+			}
+			catch (IOException exception)
+			{
+				PrintLine("An error occurred during the processing of \"" + path + "\": " + exception.Message);
+			}
+			return true;
 		}
 
 		// returns false when a network error occurred
@@ -287,7 +291,7 @@ namespace LoLLogs
 			{
 				if (!running)
 					break;
-				ProcessLogs();
+				ProcessLogs(loggerConfiguration.lolDirectory);
 				SerialiseHistory();
 				terminateThreadEvent.WaitOne(pollingDelay);
 			}
