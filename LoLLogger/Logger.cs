@@ -270,10 +270,27 @@ namespace LoLLogs
 					PrintLine("Encountered an incomplete end of game stats section in \"" + path + "\"");
 					break;
 				}
-				string endOfGameStats = contents.Substring(beginningOffset, endOffset - beginningOffset);
 				offset = endOffset + endMarker.Length;
+				string endOfGameStats = contents.Substring(beginningOffset, endOffset - beginningOffset);
+
+				endOffset = contents.LastIndexOf('\n', beginningOffset);
+				if (endOffset == -1)
+				{
+					PrintLine("Unable to locate the preceding line");
+					break;
+				}
+				beginningOffset = contents.LastIndexOf('\n', endOffset - 1);
+				if (beginningOffset == -1)
+				{
+					PrintLine("Unable to determine the beginning of the preceding line");
+					break;
+				}
+				beginningOffset++;
+				string precedingLine = contents.Substring(beginningOffset, endOffset - beginningOffset);
+				string timeZonestring = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).TotalSeconds.ToString();
+				string output = timeZonestring + "\n" + precedingLine + "\n" + endOfGameStats;
 				PrintLine("Discovered stats for a game of size " + endOfGameStats.Length.ToString() + " in file \"" + path + "\"");
-				if (!TransmitContents(endOfGameStats))
+				if (!TransmitContents(output))
 					return false;
 			}
 			lock (history)
